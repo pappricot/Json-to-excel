@@ -10,13 +10,20 @@ function make_book() {
 }
 
 let wb = make_book();
+let existingSearchTerm = 'pomsky' // later should get saved in server side
 
 app.get('/:searchTerm', (req, response) => {
 
     function append_sheet(data) {
         var ws = XLSX.utils.json_to_sheet(data);
         //if searchTerm doesnt exist call this line, else append to existing sheet
-        XLSX.utils.book_append_sheet(wb, ws, req.params.searchTerm);
+        if (req.params.searchTerm !== existingSearchTerm) {
+            XLSX.utils.book_append_sheet(wb, ws, req.params.searchTerm);
+        }
+        else {
+            XLSX.utils.sheet_add_aoa(ws, existingSearchTerm);
+        }
+        
         console.log(req.params.searchTerm);
         console.log("append");
         return wb;
