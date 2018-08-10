@@ -4,20 +4,24 @@ let google = require('google');
 
 const app = express();
 
-function make_book(data) {
-    console.log("start make-book");
-    var ws = XLSX.utils.json_to_sheet(data);
-    console.log("ws");
-    // load book from existing file
-    var wb = XLSX.utils.book_new();
-    console.log("wb");
-    //if searchTerm doesnt exist call this line, else append to existing sheet
-    XLSX.utils.book_append_sheet(wb, ws, "SheetJS");
-    console.log("append");
-	return wb;
+function make_book() {
+    let wb = XLSX.utils.book_new();
+    return wb;
 }
 
+let wb = make_book();
+
 app.get('/:searchTerm', (req, response) => {
+
+    function append_sheet(data) {
+        var ws = XLSX.utils.json_to_sheet(data);
+        //if searchTerm doesnt exist call this line, else append to existing sheet
+        XLSX.utils.book_append_sheet(wb, ws, req.params.searchTerm);
+        console.log(req.params.searchTerm);
+        console.log("append");
+        return wb;
+    }
+
     google.resultsPerPage = 10
     var nextCounter = 0
 
@@ -41,13 +45,13 @@ app.get('/:searchTerm', (req, response) => {
         }
         else {
             console.log("should start workbook");
-            const workbook = make_book(searchResults);
+            const append_sheet_var = append_sheet(searchResults);
             console.log("workbook here");
 
-            response.set('Content-Type', 'application/octet-stream');
-            response.set('Content-Disposition', "attachment; filename=" + req.params.searchTerm + '.xlsx')
+            //response.set('Content-Type', 'application/octet-stream');
+           // response.set('Content-Disposition', "attachment; filename=" + req.params.searchTerm + '.xlsx')
 
-            response.send(XLSX.write(workbook, {type:'buffer', bookType:'xlsx'}));
+            response.send(XLSX.writeFile(append_sheet_var, 'Test.xlsx', {type:'buffer', bookType:'xlsx'}));
         }
     })
 })
