@@ -163,10 +163,15 @@ async function extractMetadata(googleSearchResult, pageHtml) {
 
     
 }
-
+const webdriver = require('selenium-webdriver');
 async function ExtractYouTube(googleSearchResult, $, existingItem = {}) {
 
-    let driver = await new Builder().forBrowser('chrome').build();
+    //preventing Chrome pop-up
+    const chromeCapabilities = webdriver.Capabilities.chrome();
+    chromeCapabilities.set('chromeOptions', {args: ['--headless']});
+    
+
+    let driver = await new Builder().forBrowser('chrome').withCapabilities(chromeCapabilities).build();
     let title;
     try {
       await driver.get(googleSearchResult.link);
@@ -210,6 +215,19 @@ function ExtractDefault(googleSearchResult, $, existingItem = {}) {
     return existingItem;
 }
 
+async function getSearchResultsForUrl(url) {
+    const fetchR = await fetch(url)
+    const fetchResult = await fetchR.json()
+    const promises = fetchResult.items.map(async item => {
+       const fetchAnotherResult = await fetch(item.link)
+       const textVersionofFetch = await fetchAnotherResult.text()
+        //.then(text => ({ item, text }))
+        return extractMetadata(item, textVersionofFetch)
+    });
+    const arrResults = await Promise.all(promises)
+    return arrResults
+}
+
 const fetch = require('node-fetch');
 app.get('/finalResult/:searchTerm', function(req, res) {
     //get search term from request
@@ -217,23 +235,25 @@ app.get('/finalResult/:searchTerm', function(req, res) {
     const url =        `https://www.googleapis.com/customsearch/v1?q=${searchTerm}&cx=002391576498916891741%3Avnikl71zia0&num=10&key=AIzaSyDWLuyXDJnXJ7wxA5PJPxxh70MdXLt2A5A&dateRestrict=w1`;
 
     
-    //use Google search API
-    fetch(url)
-        .then(response => response.json())
-        .then(searchResults => {
-            console.log(searchResults);            
-            //extract links
-            const promises = searchResults.items.map(item => 
-                fetch(item.link)
-                .then(res => res.text())
-                //.then(text => ({ item, text }))
-                .then(text => extractMetadata(item, text))
-            );
-            //wait for them to all finish
-            Promise.all(promises)
-                .then((arrayToReturn) => res.json(arrayToReturn));
+    getSearchResultsForUrl(url).then((arrayToReturn) => res.json(arrayToReturn));
 
-        })
+    //use Google search API
+    // fetch(url)
+    //     .then(response => response.json())
+    //     .then(searchResults => {
+    //         console.log(searchResults);            
+    //         //extract links
+    //         const promises = searchResults.items.map(item => 
+    //             fetch(item.link)
+    //             .then(res => res.text())
+    //             //.then(text => ({ item, text }))
+    //             .then(text => extractMetadata(item, text))
+    //         );
+    //         //wait for them to all finish
+    //         Promise.all(promises)
+    //             .then((arrayToReturn) => res.json(arrayToReturn));
+
+    //     })
 })
 
 
