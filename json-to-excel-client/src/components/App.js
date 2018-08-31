@@ -1,23 +1,46 @@
-import React, { Component } from 'react';
-import './App.css';
-import SearchBar from './Search';
-import HtmlTable from './htmlTable';
+import React, { Component } from "react";
+import {connect} from "react-redux";
+import "./App.css";
+import "./main.css";
+import SearchBar from "./Search";
+import Table from "./ReactTable";
+import {fetchSearchTermData, exportExcel} from "../actions";
+import Footer from "./Footer";
+import ExportExcel from './ExportExcel';
 
 class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <h1 className="App-title">Json-to-Excel</h1>
-        </header>
-        <br />
-        <div className="container">
-          <SearchBar />
-          <HtmlTable />
-        </div>
-      </div>
-    );
-  }
+	constructor(props) {
+		super(props);
+	}
+	render() {
+		console.log("searchterm", this.props.searchTerm);
+		return (
+			<div className="App container">
+				<header className="App-header">
+					<h1 className="App-title">Json-to-Excel</h1>
+				</header>
+				<main>
+					<div className="main">
+						<SearchBar 
+							getSearchTermData={(getData) => this.props.dispatch(fetchSearchTermData(getData)
+							)}
+						/>
+						<ExportExcel exportExcel={() => this.props.dispatch(exportExcel()
+						)}
+						/>
+						<br />
+						<Table />
+					</div>
+				</main>
+				<footer><Footer /></footer>
+			</div>
+		);
+	}
 }
 
-export default App;
+const mapStoreToProps = (store) => ({
+	main: store.main.searchTerm,
+});
+
+
+export default connect(mapStoreToProps)(App);
