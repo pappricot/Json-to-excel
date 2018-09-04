@@ -1,30 +1,41 @@
 'use strict';
 const mongoose = require('mongoose');
 
-const SearchTermSchema = mongoose.Schema({
+const SearchResultsSchema = mongoose.Schema({
+  searchTerm: {
+    type: String,
+    required: true
+  },
+  results: [{
     title: {
-		type: String,
-		required: true
-    },
+      type: String,
+      required: true
+      },
     link: {
-		type: String,
-		required: true
-    },
+      type: String,
+      required: true
+      },
     date: {
-		type: String,
-		required: true
-	},
+      type: String
+      },
+    summary: {
+      type: String
+    }
+ }]
+}, {
+  timestamps: true
 })
 
-SearchTermSchema.methods.serialize = function() {
+SearchResultsSchema.methods.serialize = function() {
     return {
       title: this.title || '',
       link: this.link || '',
-      data: this.data || ''
+      data: this.data || '',
+      summary: this.summary || ''
     };
   };
   
   
-  const SearchTerm = mongoose.model('SearchTerm', SearchTermSchema);
+  const SearchResults = mongoose.model('SearchResults', SearchResultsSchema);
   
-  module.exports = {SearchTerm};
+  module.exports = {SearchResults};

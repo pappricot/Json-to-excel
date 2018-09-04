@@ -3,7 +3,7 @@ let XLSX = require('xlsx');
 let google = require('google/lib/google');
 const morgan = require('morgan');
 const cors = require('cors');
-const {searchTerm} = require('./model');
+const {SearchResults} = require('./model');
 const {Builder, By, Key, until} = require('selenium-webdriver');
 
 const app = express();
@@ -72,19 +72,18 @@ app.get('/cheerioSearch', (req, res) => {
 });
 })
 
-app.get('/search/:searchTerm', (req, response) => {
-
+app.get('/searchExport/:id', (req, response) => {
+    const id = req.params.id
     let wb = XLSX.readFile('Test.xlsx');
-    let existingSearchTerm = 'pomsky' // later should get saved in server side
 
-    function append_sheet(data) {
-
-        if (wb.Sheets[req.params.searchTerm]) {
-            const existingSheet = wb.Sheets[req.params.searchTerm];
+    function append_sheet(data, searchTerm) {
+        console.log('data', data[0]);
+        if (wb.Sheets[searchTerm]) {
+            const existingSheet = wb.Sheets[searchTerm];
             XLSX.utils.sheet_add_json(existingSheet, data, {skipHeader: true, origin: -1}) //append new data to the end of existing sheet
         } else {
             var ws = XLSX.utils.json_to_sheet(data);
-            XLSX.utils.book_append_sheet(wb, ws, req.params.searchTerm);
+            XLSX.utils.book_append_sheet(wb, ws, searchTerm);
         }
 
         
@@ -97,44 +96,24 @@ app.get('/search/:searchTerm', (req, response) => {
         //     XLSX.utils.sheet_add_json(, data existingSearchTerm); // existing tab
         // }
         
-        
-        console.log(req.params.searchTerm);
-        console.log("append");
         return wb;
     }
 
-    google.resultsPerPage = 10
-    var nextCounter = 0
-
-    let searchResults = [];
-
-    google(req.params.searchTerm, function (err, res){
-        console.log('waiting for resusts');
-        if (err) console.error(err)
-
-        for (var i = 0; i < res.links.length; ++i) {
-            var link = res.links[i];
-            searchResults.push(link);
-        }
-
-        if (nextCounter < 4) {
-            nextCounter += 1
-            if (res.next) res.next()
-            else {
-                response.json(searchResults)
-            }
-        }
-        else {
-            console.log("should start workbook");
-            const append_sheet_var = append_sheet(searchResults);
-            console.log("workbook here");
-
+    SearchResults
+        .findById(id)
+        .exec()
+        .then((searchResult) => {
+           const searchResults = JSON.parse(JSON.stringify(searchResult.results));
+           const append_sheet_var = append_sheet(searchResults, searchResult.searchTerm);
+           //console.log('searchResult', searchResult)
+            
             //response.set('Content-Type', 'application/octet-stream');
-           // response.set('Content-Disposition', "attachment; filename=" + req.params.searchTerm + '.xlsx')
+            // response.set('Content-Disposition', "attachment; filename=" + req.params.searchTerm + '.xlsx')
 
             response.send(XLSX.writeFile(append_sheet_var, 'Test.xlsx', {type:'buffer', bookType:'xlsx'}));
-        }
-    })
+        })
+
+    
 })
 
 app.get('/allData/:sheetName', function(req, res) {
@@ -155,7 +134,11 @@ async function extractMetadata(googleSearchResult, pageHtml) {
     console.log('hostname', hostname)
 
     if (hostname.endsWith("youtube.com")) {
-        return await ExtractYouTube(googleSearchResult, $, objToReturn);
+        try {
+            return await ExtractYouTube(googleSearchResult, $, objToReturn);
+        } catch {
+            return ExtractDefault(googleSearchResult, $, objToReturn);
+        }
     } else {
         return ExtractDefault(googleSearchResult, $, objToReturn);
     }
@@ -163,28 +146,66 @@ async function extractMetadata(googleSearchResult, pageHtml) {
 
     
 }
+const timeout = ms => new Promise(res => setTimeout(res, ms))
 const webdriver = require('selenium-webdriver');
+
 async function ExtractYouTube(googleSearchResult, $, existingItem = {}) {
+
+    const isHeadless = false;
+
+    const args = [];
+
+    if (isHeadless) {
+        args.push('--headless');
+    }
 
     //preventing Chrome pop-up
     const chromeCapabilities = webdriver.Capabilities.chrome();
-    chromeCapabilities.set('chromeOptions', {args: ['--headless']});
+    chromeCapabilities.set('chromeOptions', {args});
     
 
     let driver = await new Builder().forBrowser('chrome').withCapabilities(chromeCapabilities).build();
     let title;
+    let summary;
+
+    async function findElementByCssOrTimeout(selector, timeout, interval = 500) {
+
+        await timeout(interval);
+        
+        // endpoint for the function to give up
+        if (timeout < 0) {
+            throw new Error('cannot find element');
+        }
+
+        try {
+            return driver.findElement(By.css(selector))
+        }
+        catch {
+            // use recursion
+            return findElementByCssOrTimeout(selector, timeout - interval, interval)
+        }
+    }
+
     try {
       await driver.get(googleSearchResult.link);
-      const titleEl = await driver.findElement(By.css('yt-formatted-string#title'));
+      await timeout(7000);
+      const titleEl = await findElementByCssOrTimeout('yt-formatted-string#title, h1.title > yt-formatted-string', 7000, 500);
       title = await titleEl.getText();
-      console.log('title El', titleEl)
-      console.log('title', title)
+      const summaryEl = await findElementByCssOrTimeout('div.style-scope.ytd-video-secondary-info-renderer', 7000, 500);
+      summary = await summaryEl.getText();
+      console.log('summary El', summaryEl)
+      console.log('summary', summary)
+    //   console.log('title El', titleEl)
+    //   console.log('title', title)
+    } catch (e) {
+        console.error(e)
+        throw e;
     } finally {
       await driver.quit();
     }
     
     return {
-        ...existingItem, title
+        ...existingItem, title, summary
     };
 }
 
@@ -212,10 +233,22 @@ function ExtractDefault(googleSearchResult, $, existingItem = {}) {
             }
     })
 
+    //summary
+    $('article, header, div').each((i, el) => {
+
+        const summary = $(el)
+            .find('.content__standfirst')
+            .text()
+            .replace(/,/, ''); // get rid of comma before year
+        if (summary && !existingItem.summary) {
+            existingItem.summary = summary
+            }
+    })
+
     return existingItem;
 }
 
-async function getSearchResultsForUrl(url) {
+async function getSearchResultsForUrl(url, searchTerm) {
     const fetchR = await fetch(url)
     const fetchResult = await fetchR.json()
     const promises = fetchResult.items.map(async item => {
@@ -225,7 +258,12 @@ async function getSearchResultsForUrl(url) {
         return extractMetadata(item, textVersionofFetch)
     });
     const arrResults = await Promise.all(promises)
-    return arrResults
+    const searchResults = new SearchResults({
+        results: arrResults, 
+        searchTerm
+    }) 
+    const searchResultsSaved = await searchResults.save()
+    return searchResultsSaved
 }
 
 const fetch = require('node-fetch');
@@ -235,7 +273,8 @@ app.get('/finalResult/:searchTerm', function(req, res) {
     const url =        `https://www.googleapis.com/customsearch/v1?q=${searchTerm}&cx=002391576498916891741%3Avnikl71zia0&num=10&key=AIzaSyDWLuyXDJnXJ7wxA5PJPxxh70MdXLt2A5A&dateRestrict=w1`;
 
     
-    getSearchResultsForUrl(url).then((arrayToReturn) => res.json(arrayToReturn));
+    getSearchResultsForUrl(url, searchTerm).then((searchResults) => res.json(searchResults))
+    .catch(e => res.statusCode(500).json(e));
 
     //use Google search API
     // fetch(url)
@@ -257,30 +296,17 @@ app.get('/finalResult/:searchTerm', function(req, res) {
 })
 
 
-app.get('/youtube/:searchTerm', function(req, res) {
-
-    const searchTerm = req.params.searchTerm; 
-    const urls = [
-
-    ]
-
-       
-    return fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${searchTerm}&type=title&key=AIzaSyDWLuyXDJnXJ7wxA5PJPxxh70MdXLt2A5A&dateRestrict=w1`)
-    .then (res => res.json())
-    .then (result => console.log(result.items)) 
-    .then (snippet =>console.log(snippet.snippet))
-})
-
-
 function runServer(port = PORT) {
-    const server = app
-      .listen(port, () => {
-        console.info(`App listening on port ${server.address().port}`);
-      })
-      .on('error', err => {
-        console.error('Express failed to start');
-        console.error(err);
-      });
+    dbConnect().then(() => {
+        const server = app
+        .listen(port, () => {
+          console.info(`App listening on port ${server.address().port}`);
+        })
+        .on('error', err => {
+          console.error('Express failed to start');
+          console.error(err);
+        });
+    })
   }
 
   if (require.main === module) {
