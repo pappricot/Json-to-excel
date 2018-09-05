@@ -8,7 +8,7 @@ import {fetchSearchTermData, exportExcel} from "../actions";
 import Footer from "./Footer";
 import ExportExcel from './ExportExcel';
 
-class App extends Component {
+export class App extends Component {
 	constructor(props) {
 		super(props);
 	}

@@ -18,6 +18,10 @@ class Table extends React.Component {
 		{
 			Header: "Date",
 			accessor: "date" // String-based value accessors!
+		},
+		{
+			Header: "Summary",
+			accessor: "summary" // String-based value accessors!
 		}
 		];
 		// console.log("Hyperlink", data[0]);
