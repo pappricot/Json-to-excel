@@ -6,7 +6,7 @@
 deploy:
   provider: heroku
   api_key: "2d789620-e3f1-4d81-a4ea-f79cc5d54c76"
-  app: stormy-harbor-66807
+  app: json-to-excel-server
 install:
   - npm install
 script:
