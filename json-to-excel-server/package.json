@@ -3,16 +3,20 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "jest": {
+    "setupTestFrameworkScriptFile": "./tests/setup.js"
+  },
   "scripts": {
     "start": "nodemon index.js",
     "debug": "nodemon --inspect index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "cheerio-advanced-selectors": "^2.0.1",
     "cors": "^2.8.4",
+    "enzyme": "^3.5.1",
     "express": "^4.16.3",
     "google": "^2.1.0",
     "mongoose": "^5.2.7",
@@ -21,5 +25,9 @@
     "redux-form": "^7.4.2",
     "selenium-webdriver": "^4.0.0-alpha.1",
     "xlsx": "^0.13.3"
+  },
+  "devDependencies": {
+    "enzyme-redux": "^0.2.1",
+    "jest": "^23.5.0"
   }
 }

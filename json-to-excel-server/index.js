@@ -139,19 +139,29 @@ async function extractMetadata(googleSearchResult, pageHtml) {
         } catch {
             return ExtractDefault(googleSearchResult, $, objToReturn);
         }
-    } else {
+    }
+    else if (hostname.endsWith("facebook.com")) {
+        try {
+            return await ExtractFacebook(googleSearchResult, $, objToReturn);
+        } catch {
+            return ExtractDefault(googleSearchResult, $, objToReturn);
+        }
+    }
+    else {
         return ExtractDefault(googleSearchResult, $, objToReturn);
     }
 
 
     
 }
-const timeout = ms => new Promise(res => setTimeout(res, ms))
+const wait = ms => new Promise(res => setTimeout(res, ms))
 const webdriver = require('selenium-webdriver');
+
+// await ExctractSelenium({titleSelector, summarySelector})
 
 async function ExtractYouTube(googleSearchResult, $, existingItem = {}) {
 
-    const isHeadless = false;
+    const isHeadless = true;
 
     const args = [];
 
@@ -170,8 +180,7 @@ async function ExtractYouTube(googleSearchResult, $, existingItem = {}) {
 
     async function findElementByCssOrTimeout(selector, timeout, interval = 500) {
 
-        await timeout(interval);
-        
+        await wait(interval);
         // endpoint for the function to give up
         if (timeout < 0) {
             throw new Error('cannot find element');
@@ -188,8 +197,9 @@ async function ExtractYouTube(googleSearchResult, $, existingItem = {}) {
 
     try {
       await driver.get(googleSearchResult.link);
-      await timeout(7000);
+      await wait(1000);
       const titleEl = await findElementByCssOrTimeout('yt-formatted-string#title, h1.title > yt-formatted-string', 7000, 500);
+      // const titleEl = await findElementByCssOrTimeout(titleSelectorelector, 7000,500)
       title = await titleEl.getText();
       const summaryEl = await findElementByCssOrTimeout('div.style-scope.ytd-video-secondary-info-renderer', 7000, 500);
       summary = await summaryEl.getText();
