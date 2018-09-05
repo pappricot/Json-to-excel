@@ -3,7 +3,7 @@ import {connect} from "react-redux";
 import ReactTable from "react-table";
 import "react-table/react-table.css";
 
-class Table extends React.Component {
+export class Table extends React.Component {
 	render() {
 		const data = this.props.data;
 		const columns = [{

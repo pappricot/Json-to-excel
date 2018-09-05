@@ -1,9 +1,9 @@
 import React from "react";
 import {shallow, mount} from "enzyme";
-import {App} from "./App";
+import Footer from "./Footer";
 
-describe("<App />", () => {
+describe("<Footer />", () => {
 	it("renders without crashing", () => {
-		shallow(<App/>);
+		shallow(<Footer/>);
 	});
 });

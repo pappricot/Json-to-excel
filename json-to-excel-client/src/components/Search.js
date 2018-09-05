@@ -1,7 +1,7 @@
 import React, {Component} from "react";
 import {connect} from "react-redux";
 
-class SearchBar extends Component {
+export class SearchBar extends Component {
 	constructor(props){
 		super(props);
 		this.state = {

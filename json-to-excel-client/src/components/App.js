@@ -13,7 +13,6 @@ export class App extends Component {
 		super(props);
 	}
 	render() {
-		console.log("searchterm", this.props.searchTerm);
 		return (
 			<div className="App container">
 				<header className="App-header">

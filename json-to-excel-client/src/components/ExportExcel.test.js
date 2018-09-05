@@ -1,9 +1,9 @@
 import React from "react";
 import {shallow, mount} from "enzyme";
-import {App} from "./App";
+import ExportExcel from "./ExportExcel";
 
-describe("<App />", () => {
+describe("<ExportExcel />", () => {
 	it("renders without crashing", () => {
-		shallow(<App/>);
+		shallow(<ExportExcel />);
 	});
 });
