@@ -135,18 +135,18 @@ async function extractMetadata(googleSearchResult, pageHtml) {
 
     if (hostname.endsWith("youtube.com")) {
         try {
-            return await ExtractYouTube(googleSearchResult, $, objToReturn);
+            return await ExtractSelenium(googleSearchResult, $, objToReturn, 'yt-formatted-string#title, h1.title > yt-formatted-string', 'div.style-scope.ytd-video-secondary-info-renderer');
         } catch {
             return ExtractDefault(googleSearchResult, $, objToReturn);
         }
     }
-    else if (hostname.endsWith("facebook.com")) {
-        try {
-            return await ExtractFacebook(googleSearchResult, $, objToReturn);
-        } catch {
-            return ExtractDefault(googleSearchResult, $, objToReturn);
-        }
-    }
+    // else if (hostname.endsWith("facebook.com")) {
+    //     try {
+    //         return await ExtractSelenium(googleSearchResult, $, objToReturn);
+    //     } catch {
+    //         return ExtractDefault(googleSearchResult, $, objToReturn);
+    //     }
+    // }
     else {
         return ExtractDefault(googleSearchResult, $, objToReturn);
     }
@@ -159,7 +159,7 @@ const webdriver = require('selenium-webdriver');
 
 // await ExctractSelenium({titleSelector, summarySelector})
 
-async function ExtractYouTube(googleSearchResult, $, existingItem = {}) {
+async function ExtractSelenium(googleSearchResult, $, existingItem = {}, titleSelector, summarySelector) {
 
     const isHeadless = true;
 
@@ -198,10 +198,11 @@ async function ExtractYouTube(googleSearchResult, $, existingItem = {}) {
     try {
       await driver.get(googleSearchResult.link);
       await wait(1000);
-      const titleEl = await findElementByCssOrTimeout('yt-formatted-string#title, h1.title > yt-formatted-string', 7000, 500);
-      // const titleEl = await findElementByCssOrTimeout(titleSelectorelector, 7000,500)
+      //const titleEl = await findElementByCssOrTimeout('yt-formatted-string#title, h1.title > yt-formatted-string', 7000, 500);
+      const titleEl = await findElementByCssOrTimeout(titleSelector, 7000,500)
       title = await titleEl.getText();
-      const summaryEl = await findElementByCssOrTimeout('div.style-scope.ytd-video-secondary-info-renderer', 7000, 500);
+      //const summaryEl = await findElementByCssOrTimeout('div.style-scope.ytd-video-secondary-info-renderer', 7000, 500);
+      const summaryEl = await findElementByCssOrTimeout(summarySelector, 7000, 500);
       summary = await summaryEl.getText();
       console.log('summary El', summaryEl)
       console.log('summary', summary)
