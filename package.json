@@ -7,7 +7,7 @@
     "setupTestFrameworkScriptFile": "./tests/setup.js"
   },
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "node index.js",
     "debug": "nodemon --inspect index.js",
     "test": "jest"
   },
