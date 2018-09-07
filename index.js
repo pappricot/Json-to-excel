@@ -17,11 +17,11 @@ app.use(
     })
   );
   
-  app.use(
+app.use(
     cors({
       origin: CLIENT_ORIGIN
     })
-  );
+);
 
 var cheerio = require('cheerio');
 var cheerioAdv = require('cheerio-advanced-selectors');
@@ -136,17 +136,17 @@ async function extractMetadata(googleSearchResult, pageHtml) {
     if (hostname.endsWith("youtube.com")) {
         try {
             return await ExtractSelenium(googleSearchResult, $, objToReturn, 'yt-formatted-string#title, h1.title > yt-formatted-string', 'div.style-scope.ytd-video-secondary-info-renderer');
-        } catch {
+        } catch(e) {
             return ExtractDefault(googleSearchResult, $, objToReturn);
         }
     }
-    // else if (hostname.endsWith("facebook.com")) {
-    //     try {
-    //         return await ExtractSelenium(googleSearchResult, $, objToReturn);
-    //     } catch {
-    //         return ExtractDefault(googleSearchResult, $, objToReturn);
-    //     }
-    // }
+    else if (hostname.endsWith("facebook.com")) {
+        try {
+            return await ExtractSelenium(googleSearchResult, $, objToReturn, '#js_1.timestampContent');
+        } catch(e) {
+            return ExtractDefault(googleSearchResult, $, objToReturn);
+        }
+    }
     else {
         return ExtractDefault(googleSearchResult, $, objToReturn);
     }
@@ -189,7 +189,7 @@ async function ExtractSelenium(googleSearchResult, $, existingItem = {}, titleSe
         try {
             return driver.findElement(By.css(selector))
         }
-        catch {
+        catch(e) {
             // use recursion
             return findElementByCssOrTimeout(selector, timeout - interval, interval)
         }
@@ -224,7 +224,7 @@ function ExtractDefault(googleSearchResult, $, existingItem = {}) {
     //title
     $('article, header, body, h1').each((i, el) => {
         const title = $(el)
-            .find('h1 > .ytd-video-primary-info-renderer, h1, h2, a' ) 
+            .find('h1 > .ytd-video-primary-info-renderer, h1, h2, a, span' ) 
             .text()
         if (title && !existingItem.title) {
             existingItem.title = title;
@@ -233,10 +233,10 @@ function ExtractDefault(googleSearchResult, $, existingItem = {}) {
     })
 
     //date
-    $('article, header').each((i, el) => {
+    $('article, header, span, abbr').each((i, el) => {
 
         const date = $(el)
-            .find('time, .asset-metabar-time-updated,  .article-publish-date')
+            .find('time, .asset-metabar-time-updated,  .article-publish-date, #js_1.timestampContent, title ')
             .text()
             .replace(/,/, ''); // get rid of comma before year
         if (date && !existingItem.date) {
@@ -245,10 +245,10 @@ function ExtractDefault(googleSearchResult, $, existingItem = {}) {
     })
 
     //summary
-    $('article, header, div').each((i, el) => {
+    $('article, header, div, p').each((i, el) => {
 
         const summary = $(el)
-            .find('.content__standfirst')
+            .find('.content__standfirst, .body-el-text.standard-body-el-text, p:first-of-type')
             .text()
             .replace(/,/, ''); // get rid of comma before year
         if (summary && !existingItem.summary) {
