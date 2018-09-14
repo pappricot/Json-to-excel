@@ -6,13 +6,15 @@ const cors = require('cors');
 const {SearchResults} = require('./model');
 const {Builder, By, Key, until} = require('selenium-webdriver');
 
+const app = express();
+
 app.use(
     morgan(process.env.NODE_ENV === 'production' ? 'common' : 'dev', {
       skip: (req, res) => process.env.NODE_ENV === 'test'
     })
   );
   
-const app = express();
+
 
 const { PORT, CLIENT_ORIGIN } = require('./config');
 const { dbConnect } = require('./db-mongoose');
