@@ -5,11 +5,6 @@ const morgan = require('morgan');
 const cors = require('cors');
 const {SearchResults} = require('./model');
 const {Builder, By, Key, until} = require('selenium-webdriver');
-require('chromedriver');
-const app = express();
-
-const { PORT, CLIENT_ORIGIN } = require('./config');
-const { dbConnect } = require('./db-mongoose');
 
 app.use(
     morgan(process.env.NODE_ENV === 'production' ? 'common' : 'dev', {
@@ -17,6 +12,10 @@ app.use(
     })
   );
   
+const app = express();
+
+const { PORT, CLIENT_ORIGIN } = require('./config');
+const { dbConnect } = require('./db-mongoose');
 app.use(
     cors({
       origin: CLIENT_ORIGIN
@@ -156,7 +155,7 @@ async function extractMetadata(googleSearchResult, pageHtml) {
 }
 const wait = ms => new Promise(res => setTimeout(res, ms))
 const webdriver = require('selenium-webdriver');
-
+const chrome = require('selenium-webdriver/chrome');
 // await ExctractSelenium({titleSelector, summarySelector})
 
 async function ExtractSelenium(googleSearchResult, $, existingItem = {}, titleSelector, summarySelector) {
@@ -169,16 +168,23 @@ async function ExtractSelenium(googleSearchResult, $, existingItem = {}, titleSe
         args.push('--headless');
     }
 
-    if (process.env.GOOGLE_CHROME_SHIM) {
-        args.push()
-    }
-
     //preventing Chrome pop-up
     const chromeCapabilities = webdriver.Capabilities.chrome();
     chromeCapabilities.set('chromeOptions', {args});
     
+    const getChromeOptions = () => {
+        if (process.env.GOOGLE_CHROME_SHIM) {
+            return new chrome.Options().setChromeBinaryPath(process.env.GOOGLE_CHROME_SHIM);
+        }
 
-    let driver = await new Builder().forBrowser('chrome').withCapabilities(chromeCapabilities).build();
+        return new chrome.Options();
+    }
+
+    let driver = await new Builder()
+        .forBrowser('chrome')
+        .setChromeOptions(getChromeOptions())
+        .withCapabilities(chromeCapabilities)
+        .build();
     let title;
     let summary;
 
