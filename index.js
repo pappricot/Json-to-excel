@@ -285,7 +285,7 @@ app.get('/finalResult/:searchTerm', function(req, res) {
 
     
     getSearchResultsForUrl(url, searchTerm).then((searchResults) => res.json(searchResults))
-    .catch(e => res.statusCode(500).json(e));
+    .catch(e => res.status(500).json(e));
 
     //use Google search API
     // fetch(url)
