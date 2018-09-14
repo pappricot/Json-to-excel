@@ -15,6 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "cheerio-advanced-selectors": "^2.0.1",
+    "chromedriver": "^2.41.0",
     "cors": "^2.8.4",
     "express": "^4.16.3",
     "google": "^2.1.0",

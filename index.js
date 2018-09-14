@@ -5,7 +5,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 const {SearchResults} = require('./model');
 const {Builder, By, Key, until} = require('selenium-webdriver');
-
+require('chromedriver');
 const app = express();
 
 const { PORT, CLIENT_ORIGIN } = require('./config');
@@ -169,6 +169,10 @@ async function ExtractSelenium(googleSearchResult, $, existingItem = {}, titleSe
         args.push('--headless');
     }
 
+    if (process.env.GOOGLE_CHROME_SHIM) {
+        args.push()
+    }
+
     //preventing Chrome pop-up
     const chromeCapabilities = webdriver.Capabilities.chrome();
     chromeCapabilities.set('chromeOptions', {args});
@@ -281,7 +285,7 @@ const fetch = require('node-fetch');
 app.get('/finalResult/:searchTerm', function(req, res) {
     //get search term from request
     const searchTerm = req.params.searchTerm;
-    const url =        `https://www.googleapis.com/customsearch/v1?q=${searchTerm}&cx=002391576498916891741%3Avnikl71zia0&num=10&key=AIzaSyDWLuyXDJnXJ7wxA5PJPxxh70MdXLt2A5A&dateRestrict=w1`;
+    const url = `https://www.googleapis.com/customsearch/v1?q=${searchTerm}&cx=002391576498916891741%3Avnikl71zia0&num=10&key=AIzaSyDWLuyXDJnXJ7wxA5PJPxxh70MdXLt2A5A&dateRestrict=w1`;
 
     
     getSearchResultsForUrl(url, searchTerm).then((searchResults) => res.json(searchResults))
