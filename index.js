@@ -176,10 +176,10 @@ async function ExtractSelenium(googleSearchResult, $, existingItem = {}, titleSe
     
     const getChromeOptions = () => {
         if (process.env.GOOGLE_CHROME_SHIM) {
-            return new chrome.Options().setChromeBinaryPath(process.env.GOOGLE_CHROME_SHIM);
+            return new chrome.Options().setChromeBinaryPath(process.env.GOOGLE_CHROME_SHIM).headless();
         }
 
-        return new chrome.Options();
+        return new chrome.Options().headless();
     }
 
     let driver = await new Builder()
