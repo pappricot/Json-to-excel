@@ -280,9 +280,7 @@ async function getSearchResultsForUrl(url, searchTerm) {
     console.log('fetchResult', fetchResult)
     const promises = fetchResult.items.map(async item => {
        const fetchAnotherResult = await fetch(item.link)
-       console.log('fetchAnotherResult', fetchAnotherResult)
        const textVersionofFetch = await fetchAnotherResult.text()
-       console.log('textVersionofFetch', textVersionofFetch)
         //.then(text => ({ item, text }))
         return extractMetadata(item, textVersionofFetch)
     });
