@@ -195,7 +195,7 @@ async function ExtractSelenium(googleSearchResult, $, existingItem = {}, titleSe
         await wait(interval);
         // endpoint for the function to give up
         if (timeout < 0) {
-            throw new Error('cannot find element');
+            return null;
         }
 
         try {
@@ -222,7 +222,9 @@ async function ExtractSelenium(googleSearchResult, $, existingItem = {}, titleSe
     //   console.log('title', title)
     } catch (e) {
         console.error(e)
-        throw e;
+        return {
+            ...existingItem,
+        };
     } finally {
       await driver.quit();
     }
