@@ -275,19 +275,25 @@ function ExtractDefault(googleSearchResult, $, existingItem = {}) {
 
 async function getSearchResultsForUrl(url, searchTerm) {
     const fetchR = await fetch(url)
+    console.log('fetchR', fetchR)
     const fetchResult = await fetchR.json()
+    console.log('fetchResult', fetchResult)
     const promises = fetchResult.items.map(async item => {
        const fetchAnotherResult = await fetch(item.link)
+       console.log('fetchAnotherResult', fetchAnotherResult)
        const textVersionofFetch = await fetchAnotherResult.text()
+       console.log('textVersionofFetch', textVersionofFetch)
         //.then(text => ({ item, text }))
         return extractMetadata(item, textVersionofFetch)
     });
     const arrResults = await Promise.all(promises)
+    console.log('arrResults', arrResults)
     const searchResults = new SearchResults({
         results: arrResults, 
         searchTerm
     }) 
     const searchResultsSaved = await searchResults.save()
+    console.log('searchResultsSaved', searchResultsSaved)
     return searchResultsSaved
 }
 
