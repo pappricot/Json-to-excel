@@ -284,7 +284,10 @@ async function getSearchResultsForUrl(url, searchTerm) {
         const textVersionofFetch = await fetchAnotherResult.text()
         console.log('got result', item)
          //.then(text => ({ item, text }))
-         return extractMetadata(item, textVersionofFetch)
+         return extractMetadata(item, textVersionofFetch).catch((e) => {
+             console.log('error in extractMetadata', e)
+             return item;
+         })
        } catch (e) {
            console.log(e);
            return item;
