@@ -287,13 +287,13 @@ async function getSearchResultsForUrl(url, searchTerm) {
         return extractMetadata(item, textVersionofFetch)
     });
     const arrResults = await Promise.all(promises)
-    console.log('arrResults', arrResults)
+    console.log('arrResults', arrResults.length)
     const searchResults = new SearchResults({
         results: arrResults, 
         searchTerm
     }) 
     const searchResultsSaved = await searchResults.save()
-    console.log('searchResultsSaved', searchResultsSaved)
+    console.log('searchResultsSaved', searchResultsSaved.length)
     return searchResultsSaved
 }
 
