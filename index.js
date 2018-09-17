@@ -279,10 +279,16 @@ async function getSearchResultsForUrl(url, searchTerm) {
     const fetchResult = await fetchR.json()
     console.log('fetchResult', fetchResult)
     const promises = fetchResult.items.map(async item => {
-       const fetchAnotherResult = await fetch(item.link)
-       const textVersionofFetch = await fetchAnotherResult.text()
-        //.then(text => ({ item, text }))
-        return extractMetadata(item, textVersionofFetch)
+       try {
+        const fetchAnotherResult = await fetch(item.link)
+        const textVersionofFetch = await fetchAnotherResult.text()
+        console.log('got result', item)
+         //.then(text => ({ item, text }))
+         return extractMetadata(item, textVersionofFetch)
+       } catch (e) {
+           console.log(e);
+           return item;
+       }
     });
     const arrResults = await Promise.all(promises)
     console.log('arrResults', arrResults.length)
