@@ -38,41 +38,6 @@ fs.writeFileSync('post.csv', `Title, Link, Date\n`, 'utf8');
 //write headers
 //writeStream.write(`Title, Link, Date \n`);
 
-app.get('/cheerioSearch', (req, res) => {
-    request('http://codedemos.com/sampleblog', (error, response, html) => {
-    if (!error && response.statusCode == 200) {
-        const $ = cheerio.load(html);
-        
-        $('.post-preview').each((i, el) => {
-            const title = $(el)
-                .find('.post-title')
-                .text()
-                .replace(/\s\s+/g, ''); // to get rid of whitespace, g is global
-
-            const link = $(el)
-                .find('a')
-                .attr('href');
-
-            const date = $(el)
-                .find('.post-date')
-                .text()
-                .replace(/,/, ''); // get rid of comma before year
-
-            //console.log(title, link, date)
-
-            //write row to csv
-           //return writeStream.write(`${title}, ${link}, ${date} \n`);
-            
-           return fs.appendFile('post.csv', `${title}, ${link}, ${date} \n`, 'utf8', (err) => {
-               if (err) throw 'error';
-               return res.status(200).send()
-           }  )
-        })
-        console.log('Done scrapping')
-    }
-});
-})
-
 app.get('/searchExport/:id', (req, response) => {
     const id = req.params.id
     let wb = XLSX.readFile('Test.xlsx');
@@ -123,6 +88,7 @@ app.get('/allData/:sheetName', function(req, res) {
 })
 
 async function extractMetadata(googleSearchResult, pageHtml) {
+    console.log('try loading with cheerio');
     const $ = cheerio.load(pageHtml);
     
     const objToReturn = {
