@@ -1,4 +1,4 @@
-# JSOn-to-Excel (aka Scrape Me)
+# JSON-to-Excel (aka Scrape Me)
 
 This is the server side of JSON-to-Excel app at https://github.com/pappricot/json-to-excel-client.
 Follow instructions in above link's README file to run the app locally.
