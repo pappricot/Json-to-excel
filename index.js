@@ -197,7 +197,10 @@ async function ExtractSelenium(googleSearchResult, $, existingItem = {}, titleSe
     }
     
     return {
-        ...existingItem, title, summary
+        ...existingItem,
+        title,
+        summary,
+        engine: "selenium"
     };
 }
 
@@ -237,6 +240,7 @@ function ExtractDefault(googleSearchResult, $, existingItem = {}) {
             }
     })
 
+    existingItem.engine = "cheerio"
     return existingItem;
 }
 
