@@ -21,6 +21,9 @@ const SearchResultsSchema = mongoose.Schema({
       },
     summary: {
       type: String
+    },
+    engine: {
+      type: String
     }
  }]
 }, {
