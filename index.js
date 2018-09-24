@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 const {SearchResults} = require('./model');
 const {Builder, By, Key, until} = require('selenium-webdriver');
+const URL = require('url');
 
 const app = express();
 
