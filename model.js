@@ -9,7 +9,8 @@ const SearchResultsSchema = mongoose.Schema({
   results: [{
     title: {
       type: String,
-      required: true
+      required: true,
+      default: 'No title'
       },
     link: {
       type: String,
